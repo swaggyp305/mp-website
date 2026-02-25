@@ -1,0 +1,425 @@
+Product Requirements Document
+Retro Portfolio Website with 3D Interactive Elements
+Version1.1 (Enhanced for Development)DateFebruary 2026Project TypePersonal Portfolio WebsitePlatformVercel
+1. Executive Summary
+This document outlines the requirements for a personal portfolio website that showcases software engineering projects through an innovative retro-nostalgic design. The site features a unique 3D interactive environment that users can toggle between, along with a built-in typing race game with a persistent leaderboard. The website will be deployed on Vercel and designed to be performant, accessible, and memorable.
+2. Project Overview
+2.1 Purpose
+Create a distinctive personal portfolio website that stands out from traditional developer portfolios by offering:
+• An immersive 3D workspace environment that users can explore
+• A retro-nostalgic aesthetic that evokes computing history
+• An interactive typing race feature to engage visitors
+• Flexible viewing modes for different user preferences
+
+2.2 Target Audience
+• Potential employers and recruiters seeking software engineers
+• Fellow developers and tech enthusiasts
+• Collaborators and networking contacts
+• Anyone interested in unique web experiences
+
+3. User Experience & Interface
+3.1 View Modes
+The website must support two distinct viewing modes with seamless toggling:
+3.1.1 3D Mode
+• Users navigate a 3D workspace scene (e.g., desk, room, or retro computer setup)
+• Interactive objects in the scene trigger navigation to different portfolio sections
+• A virtual computer screen within the 3D scene displays portfolio content
+• Camera controls allow users to orbit, zoom, and explore the environment
+• Retro aesthetic elements: CRT monitor effects, vintage keyboard, desk objects from the 1980s-90s computing era
+
+3.1.2 2D Mode
+• Traditional scrollable website layout for faster navigation
+• Maintains retro aesthetic through color palette, typography, and UI elements
+• Optimized for performance and accessibility
+• Mobile-responsive design
+
+3.1.3 Mode Toggle
+• Prominent toggle button visible in both modes
+• Smooth transition animation between modes
+• Preserves current section/page when switching modes
+• User preference saved in localStorage
+
+3.2 Design Aesthetic
+Retro-Nostalgic Theme
+• Color palette: Beige/cream backgrounds, amber or green CRT-style text, muted pastels
+• Typography: Monospace fonts (e.g., IBM Plex Mono, VT323, Press Start 2P) for headings and code
+• UI elements: Pixel art icons, scanline effects, terminal-style inputs
+• Subtle animations: Cursor blink, screen flicker, loading sequences reminiscent of boot screens
+• Optional: Easter eggs like hidden terminal commands or retro game references
+
+4. Core Features & Functionality
+4.1 Content Sections
+4.1.1 About/Bio
+• Personal introduction and professional summary
+• Profile photo or avatar
+• Background and interests
+• Links to social profiles (GitHub, LinkedIn, etc.)
+
+4.1.2 Projects/Work
+• Project cards/tiles with thumbnail images
+• Project details: title, description, tech stack, links (live demo, GitHub repo)
+• Filter/sort functionality by technology or project type
+• Individual project pages with detailed case studies
+
+4.1.3 Resume/CV
+• Web-viewable resume with work experience, education, and skills
+• Downloadable PDF version
+• Timeline or chronological layout
+
+4.1.4 Contact
+• Contact form with fields: name, email, subject, message
+• Form validation and spam protection
+• Integration with email service (e.g., Resend, SendGrid, or simple mailto fallback)
+• Alternative contact methods displayed (email, social links)
+
+4.2 Typing Race Feature
+A standalone interactive typing test game inspired by MonkeyType, integrated into the portfolio.
+4.2.1 Core Functionality
+• Display a passage of randomized text for users to type
+• Real-time WPM (words per minute) and accuracy tracking
+• Visual feedback: correct characters in green, incorrect in red, current character highlighted
+• Timer display showing elapsed time or countdown
+• Test completion summary: final WPM, accuracy percentage, time taken
+
+4.2.2 Leaderboard
+• All-time global leaderboard displaying top scores
+• Score submission requires user authentication (username/nickname)
+• Display fields: rank, username, WPM, accuracy, date
+• Pagination or scrollable list for viewing more entries
+• Anti-cheating measures: basic validation, rate limiting on submissions
+
+4.2.3 User Authentication
+• Simple authentication for leaderboard submissions (no full account system required)
+• Options: Guest username input with optional email, or social login (GitHub, Google)
+• Store minimal user data (username, optional email for gravatar/avatar)
+• Session persistence for returning users
+
+4.2.4 Design Integration
+• Retro terminal or typewriter aesthetic for the typing interface
+• Keyboard sound effects (optional toggle)
+• Accessible via navigation or as a prominent feature on the homepage
+• Works in both 3D and 2D modes
+
+5. Database Schema & Data Model
+Complete database schema for Vercel Postgres, Supabase, or similar PostgreSQL-compatible database. Use Prisma or Drizzle ORM for type-safe database access.
+5.1 Tables
+Users Table
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username VARCHAR(50) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE,
+  display_name VARCHAR(100),
+  avatar_url TEXT,
+  oauth_provider VARCHAR(50),
+  oauth_id VARCHAR(255),
+  is_guest BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  last_login TIMESTAMP WITH TIME ZONE
+);
+
+Scores Table
+CREATE TABLE scores (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  wpm DECIMAL(5,2) NOT NULL,
+  accuracy DECIMAL(5,2) NOT NULL,
+  raw_wpm DECIMAL(5,2),
+  time_seconds INTEGER NOT NULL,
+  total_characters INTEGER NOT NULL,
+  correct_characters INTEGER NOT NULL,
+  incorrect_characters INTEGER NOT NULL,
+  test_mode VARCHAR(20) DEFAULT 'words',
+  word_count INTEGER,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  ip_address INET,
+  user_agent TEXT
+);
+
+Sessions Table (Optional, for persistent auth)
+CREATE TABLE sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  session_token VARCHAR(255) UNIQUE NOT NULL,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+5.2 Indexes
+CREATE INDEX idx_scores_wpm ON scores(wpm DESC);
+CREATE INDEX idx_scores_user_id ON scores(user_id);
+CREATE INDEX idx_scores_created_at ON scores(created_at DESC);
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_sessions_token ON sessions(session_token);
+CREATE INDEX idx_sessions_expires ON sessions(expires_at);
+
+5.3 TypeScript Types (Prisma Schema)
+Reference schema for Prisma ORM:
+model User {
+  id           String    @id @default(uuid())
+  username     String    @unique @db.VarChar(50)
+  email        String?   @unique @db.VarChar(255)
+  displayName  String?   @db.VarChar(100)
+  avatarUrl    String?
+  oauthProvider String?  @db.VarChar(50)
+  oauthId      String?   @db.VarChar(255)
+  isGuest      Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  lastLogin    DateTime?
+  scores       Score[]
+  sessions     Session[]
+}
+
+model Score {
+  id                  String   @id @default(uuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wpm                 Decimal  @db.Decimal(5, 2)
+  accuracy            Decimal  @db.Decimal(5, 2)
+  rawWpm              Decimal? @db.Decimal(5, 2)
+  timeSeconds         Int
+  totalCharacters     Int
+  correctCharacters   Int
+  incorrectCharacters Int
+  testMode            String   @default("words") @db.VarChar(20)
+  wordCount           Int?
+  createdAt           DateTime @default(now())
+  ipAddress           String?
+  userAgent           String?
+}
+
+6. Component Architecture
+This section defines the component hierarchy, data flow patterns, and state management strategy for vibecoding with AI assistance.
+6.1 State Management Strategy
+• Use Zustand or Jotai for lightweight global state (view mode, user session, typing test state)
+• React Context for theme and 3D scene configuration
+• Local component state for UI interactions and form inputs
+• React Query/TanStack Query for server state (leaderboard data, user profile)
+
+6.2 Component Tree Structure
+Root Layout Components
+app/
+??? layout.tsx              # Root layout with providers
+??? page.tsx                # Home/landing page
+??? about/page.tsx          # About section
+??? projects/page.tsx       # Projects listing
+??? projects/[slug]/page.tsx # Individual project
+??? resume/page.tsx         # Resume/CV
+??? contact/page.tsx        # Contact form
+??? typing/page.tsx         # Typing race feature
+
+Core Layout Components
+components/layout/
+??? Navigation.tsx          # Main nav (2D mode)
+??? Footer.tsx              # Site footer
+??? ViewModeToggle.tsx      # 3D/2D mode switcher
+??? RetroContainer.tsx      # Wrapper with retro styling
+
+3D Scene Components
+components/3d/
+??? Scene3D.tsx             # Main R3F Canvas wrapper
+??? Desk.tsx                # 3D desk model
+??? Monitor.tsx             # CRT monitor with screen content
+??? Keyboard.tsx            # Retro keyboard model
+??? CameraControls.tsx      # Orbit controls & camera
+??? InteractiveObject.tsx   # Generic clickable 3D object
+??? Lighting.tsx            # Scene lighting setup
+??? ScreenContent.tsx       # HTML content on 3D monitor
+
+Typing Test Components
+components/typing/
+??? TypingTest.tsx          # Main typing test container
+??? WordDisplay.tsx         # Text to type with highlighting
+??? TypingInput.tsx         # Invisible input capture
+??? StatsDisplay.tsx        # Real-time WPM/accuracy
+??? ResultsModal.tsx        # Post-test results
+??? Leaderboard.tsx         # Top scores table
+??? LeaderboardEntry.tsx    # Individual leaderboard row
+??? ScoreSubmit.tsx         # Submit score with auth
+
+UI Components
+components/ui/
+??? Button.tsx              # Retro-styled button
+??? Input.tsx               # Terminal-style input
+??? Card.tsx                # Content card with border
+??? Modal.tsx               # CRT-style modal
+??? LoadingScreen.tsx       # Boot sequence animation
+??? ScanlineEffect.tsx      # CRT scanline overlay
+
+6.3 Key Component Interfaces
+TypingTest State Interface
+interface TypingTestState {
+  text: string;                    // Current text to type
+  userInput: string;               // What user has typed
+  currentIndex: number;            // Current char position
+  startTime: number | null;        // Test start timestamp
+  endTime: number | null;          // Test end timestamp
+  wpm: number;                     // Current WPM
+  accuracy: number;                // Current accuracy %
+  errors: number;                  // Total errors
+  isComplete: boolean;             // Test finished
+  resetTest: () => void;
+  handleKeyPress: (key: string) => void;
+}
+
+View Mode Store
+interface ViewModeStore {
+  mode: '2d' | '3d';
+  currentSection: string;          // 'about' | 'projects' | etc
+  toggleMode: () => void;
+  setSection: (section: string) => void;
+}
+
+Leaderboard Entry Type
+interface LeaderboardEntry {
+  id: string;
+  rank: number;
+  username: string;
+  displayName?: string;
+  avatarUrl?: string;
+  wpm: number;
+  accuracy: number;
+  createdAt: Date;
+}
+
+6.4 Data Flow Patterns
+• Typing test: Local state in TypingTest.tsx ? Submit to API on completion ? Invalidate leaderboard query
+• View mode: Zustand store ? Persisted to localStorage ? Read on mount ? Toggle via ViewModeToggle component
+• 3D navigation: Click 3D object ? Update currentSection in store ? Navigate to route ? Update 3D camera position
+• Leaderboard: Fetch via React Query ? Cache for 5 minutes ? Refetch on focus ? Optimistic updates on submit
+• Auth: Session token in httpOnly cookie ? Middleware validates ? User state in Zustand ? Profile data via React Query
+
+7. Technical Requirements
+7.1 Frontend Framework Options
+The site is flexible regarding framework choice. Recommended options include:
+• Next.js (React): Excellent Vercel integration, SEO capabilities, strong ecosystem
+• Astro: Great for content-heavy sites, excellent performance, component framework-agnostic
+• SvelteKit: Lightweight, excellent performance, modern developer experience
+• Vue/Nuxt: Progressive framework, good 3D library support
+
+7.2 3D Rendering
+• Three.js: Industry-standard WebGL library for 3D graphics
+• React Three Fiber (if using React): React renderer for Three.js
+• Performance optimization: lazy loading, level of detail, asset optimization
+• Fallback for devices with limited WebGL support
+
+7.3 Backend & Database
+7.3.1 API Routes
+• Vercel Serverless Functions for API endpoints
+• Endpoints needed: submit score, fetch leaderboard, contact form submission, authentication
+
+7.3.2 API Endpoint Specifications
+POST /api/auth/login
+Request: { username: string, password?: string, provider?: 'github' | 'google' }
+Response: { user: User, sessionToken: string }
+
+POST /api/auth/guest
+Request: { username: string, email?: string }
+Response: { user: User, sessionToken: string }
+
+GET /api/leaderboard
+Query params: ?limit=50&offset=0&sortBy=wpm
+Response: { entries: LeaderboardEntry[], total: number, hasMore: boolean }
+
+POST /api/scores
+Request: { wpm, accuracy, timeSeconds, totalChars, correctChars, incorrectChars }
+Response: { score: Score, rank: number }
+Auth: Required (session token in cookie or header)
+Rate limit: 10 submissions per hour per user
+
+POST /api/contact
+Request: { name: string, email: string, subject: string, message: string }
+Response: { success: boolean }
+Rate limit: 5 submissions per hour per IP
+
+7.3.3 Database
+• Options: Vercel Postgres, Supabase, PlanetScale, or Neon
+• See Section 5 for complete schema definition
+
+7.3.4 Authentication
+• Options: NextAuth.js, Supabase Auth, or custom JWT implementation
+• Support for guest users with username-only submission
+• Optional OAuth providers: GitHub, Google
+
+7.4 Deployment
+• Platform: Vercel
+• Continuous deployment from Git repository (GitHub/GitLab)
+• Environment variables for API keys and database credentials
+• Custom domain configuration
+• SSL/TLS certificate (automatic via Vercel)
+
+7.5 Performance Requirements
+• Lighthouse score targets: Performance >90, Accessibility >95, Best Practices >90, SEO >90
+• First Contentful Paint (FCP) < 1.5s
+• Time to Interactive (TTI) < 3s
+• Image optimization: WebP/AVIF formats, lazy loading, responsive images
+• Code splitting and lazy loading for 3D assets
+• CDN delivery for static assets
+
+7.6 Browser Support
+• Modern browsers: Latest 2 versions of Chrome, Firefox, Safari, Edge
+• Mobile browsers: iOS Safari, Chrome for Android
+• Graceful degradation for browsers without WebGL support (fallback to 2D mode)
+
+8. Non-Functional Requirements
+8.1 Accessibility
+• WCAG 2.1 Level AA compliance
+• Keyboard navigation support throughout the site
+• Screen reader compatibility with proper ARIA labels
+• Sufficient color contrast ratios (4.5:1 for normal text, 3:1 for large text)
+• Skip-to-content link for keyboard users
+• Reduced motion support respecting prefers-reduced-motion
+
+8.2 SEO
+• Semantic HTML structure
+• Meta tags: title, description, Open Graph, Twitter Cards
+• Structured data (JSON-LD) for portfolio/person schema
+• XML sitemap
+• robots.txt configuration
+• Canonical URLs
+
+8.3 Security
+• HTTPS enforcement
+• Input sanitization and validation on all forms
+• Rate limiting on API endpoints (prevent spam and abuse)
+• CORS configuration
+• Content Security Policy headers
+• Environment variable protection for sensitive keys
+
+8.4 Analytics
+• Integration with analytics platform (Vercel Analytics, Google Analytics, or Plausible)
+• Track: page views, 3D/2D mode usage, typing race participation, contact form submissions
+• Privacy-compliant tracking (GDPR/CCPA considerations)
+
+9. Development Workflow for AI-Assisted Coding
+This section provides guidance for vibecoding with GitHub Copilot and other AI tools.
+9.1 Project Initialization Checklist
+• Initialize Next.js with TypeScript: npx create-next-app@latest --typescript
+• Install core dependencies: npm install @react-three/fiber @react-three/drei three zustand
+• Setup Prisma: npx prisma init (copy schema from Section 5.3)
+• Configure Tailwind with custom retro theme
+• Create .env.local with DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL
+• Setup component folders matching Section 6.2 structure
+
+9.2 Copilot Prompting Tips
+• Add detailed comments above components describing props, behavior, and styling requirements
+• Use descriptive variable names that hint at types (userScoreData, leaderboardEntries)
+• Reference specific sections of this PRD in comments (// See PRD Section 6.3 for interface)
+• Create skeleton components with TypeScript interfaces first, let Copilot fill implementation
+• Use inline comments to guide Copilot (// Calculate WPM: total correct chars / 5 / minutes elapsed)
+
+9.3 Testing Strategy
+• Unit tests for typing test logic (WPM calculation, accuracy tracking)
+• Integration tests for API endpoints (submit score, fetch leaderboard)
+• E2E tests for critical flows (complete typing test ? submit ? see on leaderboard)
+• Visual regression testing for 3D scene and retro UI components
+
+10. Success Metrics
+• User engagement: Average time on site > 2 minutes
+• Typing race participation: >20% of visitors try the typing test
+• Leaderboard submissions: >50 unique users within first month
+• Contact form submissions or recruiter inquiries
+• Social media shares or mentions
+• Low bounce rate (<40%)
+• Meeting all performance benchmarks listed in Section 7.5
+
+— End of Document —

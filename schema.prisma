@@ -1,0 +1,66 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  username      String    @unique @db.VarChar(50)
+  email         String?   @unique @db.VarChar(255)
+  displayName   String?   @map("display_name") @db.VarChar(100)
+  avatarUrl     String?   @map("avatar_url")
+  oauthProvider String?   @map("oauth_provider") @db.VarChar(50)
+  oauthId       String?   @map("oauth_id") @db.VarChar(255)
+  isGuest       Boolean   @default(false) @map("is_guest")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  lastLogin     DateTime? @map("last_login")
+
+  scores   Score[]
+  sessions Session[]
+
+  @@index([username])
+  @@map("users")
+}
+
+model Score {
+  id                  String   @id @default(uuid())
+  userId              String   @map("user_id")
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wpm                 Decimal  @db.Decimal(5, 2)
+  accuracy            Decimal  @db.Decimal(5, 2)
+  rawWpm              Decimal? @map("raw_wpm") @db.Decimal(5, 2)
+  timeSeconds         Int      @map("time_seconds")
+  totalCharacters     Int      @map("total_characters")
+  correctCharacters   Int      @map("correct_characters")
+  incorrectCharacters Int      @map("incorrect_characters")
+  testMode            String   @default("words") @map("test_mode") @db.VarChar(20)
+  wordCount           Int?     @map("word_count")
+  createdAt           DateTime @default(now()) @map("created_at")
+  ipAddress           String?  @map("ip_address")
+  userAgent           String?  @map("user_agent")
+
+  @@index([wpm(sort: Desc)])
+  @@index([userId])
+  @@index([createdAt(sort: Desc)])
+  @@map("scores")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionToken String   @unique @map("session_token") @db.VarChar(255)
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([sessionToken])
+  @@index([expiresAt])
+  @@map("sessions")
+}

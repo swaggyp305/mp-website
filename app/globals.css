@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-paper-bg text-dark-brown font-mono antialiased;
+}
+
+.retro-panel {
+  @apply border-2 border-dark-brown bg-cream shadow-retro;
+}
+
+.crt-overlay {
+  position: relative;
+}
+
+.crt-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: theme("backgroundImage.scanlines");
+  opacity: 0.15;
+}
+
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-monitor-amber focus-visible:ring-offset-2;
+}
