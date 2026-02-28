@@ -6,6 +6,7 @@ import type { Route } from "next";
 
 const links: { href: Route; label: string }[] = [
   { href: "/", label: "Home" },
+  { href: "/scene", label: "Scene" },
   { href: "/about", label: "About" },
   { href: "/projects", label: "Projects" },
   { href: "/resume", label: "Resume" },
