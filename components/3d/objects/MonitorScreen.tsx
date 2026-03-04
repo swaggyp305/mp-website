@@ -10,8 +10,8 @@ export function MonitorScreen() {
   return (
     <Html
       transform
-      position={[0, 1.2, -0.435]}
-      scale={0.00075}
+      position={[0, 1.2, -0.295]}
+      scale={0.000255}
       distanceFactor={1}
       style={{
         width: "1024px",

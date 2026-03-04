@@ -8,6 +8,8 @@ export function Monitor() {
   const monitorRef = useRef<THREE.Group>(null);
   const [isHovered, setIsHovered] = useState(false);
 
+  const casingColor = isHovered ? "#FBF5DE" : "#F5F5DC";
+
   useEffect(() => {
     if (!monitorRef.current) return;
 
@@ -22,53 +24,75 @@ export function Monitor() {
   return (
     <group ref={monitorRef} position={[0, 1.2, -0.5]}>
       <mesh castShadow receiveShadow>
-        <boxGeometry args={[0.95, 0.74, 0.12]} />
+        <boxGeometry args={[0.45, 0.4, 0.4]} />
         <meshStandardMaterial
-          color={isHovered ? "#F3ECDE" : "#E8E2D3"}
-          roughness={0.9}
+          color={casingColor}
+          roughness={0.7}
+          metalness={0.1}
           emissive={isHovered ? "#2F2618" : "#000000"}
-          emissiveIntensity={isHovered ? 0.22 : 0}
+          emissiveIntensity={isHovered ? 0.12 : 0}
         />
       </mesh>
 
-      <mesh position={[0, 0, 0.062]}>
-        <planeGeometry args={[0.78, 0.56]} />
-        <meshBasicMaterial color="#111111" />
+      <mesh position={[0, 0, 0.195]}>
+        <boxGeometry args={[0.4, 0.32, 0.01]} />
+        <meshStandardMaterial color="#D8D8D8" roughness={0.6} metalness={0.08} />
       </mesh>
 
-      <mesh position={[0, -0.43, 0]} castShadow>
-        <boxGeometry args={[0.2, 0.14, 0.08]} />
-        <meshStandardMaterial color="#DBD4C6" roughness={0.9} />
+      <mesh position={[0, 0, 0.201]}>
+        <planeGeometry args={[0.36, 0.27]} />
+        <meshStandardMaterial
+          color="#0D1014"
+          roughness={0.1}
+          metalness={0.15}
+          emissive={isHovered ? "#0A0F17" : "#05070A"}
+          emissiveIntensity={isHovered ? 0.08 : 0.04}
+        />
       </mesh>
 
-      <mesh position={[0, -0.52, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.45, 0.03, 0.28]} />
-        <meshStandardMaterial color="#D5CEBF" roughness={0.9} />
+      <mesh position={[0, 0, 0.2]}>
+        <planeGeometry args={[0.355, 0.265]} />
+        <meshStandardMaterial color="#111418" roughness={0.14} metalness={0.1} transparent opacity={0.92} />
       </mesh>
 
-      <mesh position={[-0.34, -0.31, 0.064]}>
-        <circleGeometry args={[0.012, 18]} />
-        <meshBasicMaterial color="#FF0000" />
+      <mesh position={[-0.14, -0.145, 0.202]}>
+        <boxGeometry args={[0.11, 0.025, 0.004]} />
+        <meshStandardMaterial color="#D7D7C4" roughness={0.62} metalness={0.05} />
       </mesh>
-      <mesh position={[-0.315, -0.31, 0.064]}>
-        <circleGeometry args={[0.012, 18]} />
-        <meshBasicMaterial color="#FF7F00" />
+
+      <mesh position={[0.162, -0.146, 0.204]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.011, 0.011, 0.01, 18]} />
+        <meshStandardMaterial color="#6F726E" roughness={0.45} metalness={0.06} />
       </mesh>
-      <mesh position={[-0.29, -0.31, 0.064]}>
-        <circleGeometry args={[0.012, 18]} />
-        <meshBasicMaterial color="#FFFF00" />
+
+      {Array.from({ length: 7 }).map((_, index) => {
+        const ventY = 0.11 - index * 0.035;
+        return (
+          <mesh key={`left-vent-${index}`} position={[-0.226, ventY, -0.02]} rotation={[0, Math.PI / 2, 0]}>
+            <boxGeometry args={[0.14, 0.01, 0.003]} />
+            <meshStandardMaterial color="#CECEBC" roughness={0.78} metalness={0.03} />
+          </mesh>
+        );
+      })}
+
+      {Array.from({ length: 7 }).map((_, index) => {
+        const ventY = 0.11 - index * 0.035;
+        return (
+          <mesh key={`right-vent-${index}`} position={[0.226, ventY, -0.02]} rotation={[0, Math.PI / 2, 0]}>
+            <boxGeometry args={[0.14, 0.01, 0.003]} />
+            <meshStandardMaterial color="#CECEBC" roughness={0.78} metalness={0.03} />
+          </mesh>
+        );
+      })}
+
+      <mesh castShadow receiveShadow position={[0, -0.25, -0.02]}>
+        <boxGeometry args={[0.08, 0.15, 0.12]} />
+        <meshStandardMaterial color="#F5F5DC" roughness={0.7} metalness={0.08} />
       </mesh>
-      <mesh position={[-0.265, -0.31, 0.064]}>
-        <circleGeometry args={[0.012, 18]} />
-        <meshBasicMaterial color="#00FF00" />
-      </mesh>
-      <mesh position={[-0.24, -0.31, 0.064]}>
-        <circleGeometry args={[0.012, 18]} />
-        <meshBasicMaterial color="#0000FF" />
-      </mesh>
-      <mesh position={[-0.215, -0.31, 0.064]}>
-        <circleGeometry args={[0.012, 18]} />
-        <meshBasicMaterial color="#8B00FF" />
+
+      <mesh castShadow receiveShadow position={[0, -0.35, -0.02]}>
+        <boxGeometry args={[0.35, 0.03, 0.25]} />
+        <meshStandardMaterial color="#E8D5C4" roughness={0.7} metalness={0.06} />
       </mesh>
     </group>
   );

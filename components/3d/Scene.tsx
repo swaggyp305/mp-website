@@ -32,8 +32,9 @@ export function Scene3D() {
   const dpr: [number, number] = quality === "high" ? [1.5, 2] : quality === "medium" ? [1, 2] : [1, 1.25];
 
   return (
-    <div className="relative h-screen w-full bg-retro-black">
+    <div className="relative h-screen w-screen overflow-hidden bg-retro-black">
       <Canvas
+        className="h-full w-full"
         camera={{
           position: [0, 1.6, 0.1],
           fov: 75,
@@ -59,12 +60,12 @@ export function Scene3D() {
           <MonitorScreen />
 
           <CameraController
-            minPolarAngle={Math.PI / 2 - Math.PI / 6}
-            maxPolarAngle={Math.PI / 2 + Math.PI / 6}
-            minAzimuthAngle={-Math.PI / 4}
-            maxAzimuthAngle={Math.PI / 4}
-            sensitivity={0.002}
-            smoothing={0.12}
+            minPolarAngle={Math.PI / 2 - Math.PI / 22.5}
+            maxPolarAngle={Math.PI / 2 + Math.PI / 22.5}
+            minAzimuthAngle={-Math.PI / 18}
+            maxAzimuthAngle={Math.PI / 18}
+            sensitivity={0.001}
+            smoothing={0.05}
           />
 
           <InteractionManager />
